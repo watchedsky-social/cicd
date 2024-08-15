@@ -1,6 +1,6 @@
 FROM docker:dind-rootless
 
-ENV BIN_DIR=$HOME/bin
+ENV BIN_DIR=/home/rootless/bin
 ENV PATH=$PATH:$BIN_DIR
 
 COPY ./dagger/version .

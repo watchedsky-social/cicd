@@ -50,58 +50,15 @@ concourse:
       github:
         enabled: true
 
-    tsa:
-      ## Enable this flag in order to customize the `client_id` and
-      ## `client_secret` used when the TSA needs to communicate with the ATC.
-      ##
-      ## Enabling this requires setting `secrets.tsaClientId` and
-      ## `secrets.tsaClientSecret` (or filling the equivalent fields in the Secret).
-      ##
-      clientConfig:
-        enabled: false
-
-      ## Minimum level of logs to see. Possible values: debug, info, error.
-      ##
-      logLevel: info
-
-      ## IP address on which to listen for SSH.
-      ##
-      bindIp: 0.0.0.0
-
-      ## Port on which to listen for SSH.
-      ##
-      bindPort: 2222
-
-      ## IP address on which to listen for the pprof debugger endpoints (default: 127.0.0.1)
-      ##
-      debugBindIp: 127.0.0.1
-
-      ## Port on which to listen for TSA pprof server.
-      ##
-      debugBindPort: 2221
-
-      ## Path to private key to use for the SSH server.
-      ##
-      hostKey:
-
-      ## ATC API endpoints to which workers will be registered.
-      ##
-      atcUrl:
-
-      ## Interval on which to heartbeat workers to the ATC.
-      ##
-      heartbeatInterval: 30s
-
-      ## How long to wait for requests to Garden to complete. 0 means no timeout.
-      ##
-      gardenRequestTimeout:
-
   worker:
     connectionDrainTimeout: 15m
     healthcheckBindIp: 0.0.0.0
     healthcheckBindPort: 8888
     healthcheckTimeout: 5s
     runtime: containerd
+
+    baggageclaim:
+      driver: btrfs
 
     autoscaling:
       # maxReplicas is required to for auto scaling
@@ -183,6 +140,7 @@ worker:
   cleanUpWorkDirOnStart: true
   replicas: 4
   minAvailable: 2
+  ephemeral: false
   resources:
     requests:
       cpu: "500m"

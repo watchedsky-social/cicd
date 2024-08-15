@@ -5,7 +5,7 @@ resources:
     public: true
     source:
       uri: git@github.com:watchedsky-social/cicd.git
-      private_key: ((cicd_git_deploy_private_key))
+      private_key: ((cicd-git-deploy-private-key))
       paths:
         - pipelines/*dagger-task*
         - assets/dagger-task/*
@@ -39,8 +39,7 @@ resources:
     source:
       interval: 168h
       location: America/New_York
-      start: '0200'
-      stop: '0300'
+
 jobs:
   - name: build-image
     serial: true
@@ -72,7 +71,7 @@ jobs:
             - name: image
           params:
             CONTEXT: source
-            DOCKERFILE: source/assets/dagger/Dockerfile
+            DOCKERFILE: source/assets/dagger-task/Dockerfile
           run:
             path: build
       - put: dagger-image
