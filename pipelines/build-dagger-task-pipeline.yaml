@@ -1,0 +1,82 @@
+resources:
+  - name: cicd-artifacts
+    type: git
+    icon: git
+    public: true
+    source:
+      uri: git@github.com:watchedsky-social/cicd.git
+      private_key: ((cicd_git_deploy_private_key))
+      paths:
+        - pipelines/*dagger-task*
+        - assets/dagger-task/*
+  - name: dagger
+    type: github-release
+    check_every: 168h
+    icon: github
+    public: true
+    source:
+      user: dagger
+      repository: dagger
+  - name: dagger-image
+    type: registry-image
+    icon: docker
+    public: true
+    source:
+      repository: registry.lab.verysmart.house/images/dagger-task-container
+      username: ((harbor-user))
+      password: ((harbor-password))
+  - name: concourse-task-resource
+    type: registry-image
+    icon: docker
+    public: true
+    source:
+      repository: concourse/oci-build-task
+  - name: weekly-build
+    type: time
+    check_every: 24h
+    icon: timer-outline
+    public: true
+    source:
+      interval: 168h
+      location: America/New_York
+      start: '0200'
+      stop: '0300'
+jobs:
+  - name: build-image
+    serial: true
+    public: true
+    plan:
+      - in_parallel:
+          - get: cicd-artifacts
+            trigger: true
+          - get: dagger
+            trigger: true
+            params:
+              globs: []
+          - get: weekly-build
+            trigger: true
+          - get: concourse-task-resource
+            params:
+              format: rootfs
+      - task: build-image
+        image: concourse-task-resource
+        privileged: true
+        config:
+          platform: linux
+          inputs:
+            - name: cicd-artifacts
+              path: source
+            - name: dagger
+              path: source/dagger
+          outputs:
+            - name: image
+          params:
+            CONTEXT: source
+            DOCKERFILE: source/assets/dagger/Dockerfile
+          run:
+            path: build
+      - put: dagger-image
+        params:
+          image: image/image.tar
+          additional_tags: dagger/version
+

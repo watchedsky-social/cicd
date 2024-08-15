@@ -1,0 +1,33 @@
+---
+resources:
+  - name: source
+    type: git
+    icon: git
+    public: true
+    source:
+      uri: ((source.git_uri))
+      private_key: ((git_deploy_private_key))
+      branch: main
+  - name: cicd-artifacts
+    type: git
+    icon: git
+    public: true
+    source:
+      uri: git@github.com:watchedsky-social/cicd.git
+      private_key: ((cicd_git_deploy_private_key))
+  - name: weekly-build
+    type: time
+    check_every: 24h
+    icon: timer-outline
+    public: true
+    source:
+      interval: 168h
+      location: America/New_York
+      start: '0200'
+      stop: '0300'
+
+jobs:
+  - name: run-dagger
+    public: true
+    serial: true
+

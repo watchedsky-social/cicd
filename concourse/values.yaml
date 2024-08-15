@@ -1,0 +1,203 @@
+imageTag: "7.11.2"
+concourse:
+  web:
+    clusterName: Watchedsky
+    defaultGetTimeout: 10m
+    defaultPutTimeout: 5m
+    defaultTaskTimeout: 20m
+    numGoroutineThreshold: 50000
+    enableAcrossStep: true
+    enableRedactSecrets: true
+    externalUrl: https://ci.watchedsky.social
+    localAuth:
+      enabled: true
+    noInputContainerPlacementStrategies: [fewest-build-containers, limit-active-containers]
+    checkContainerPlacementStrategies: [fewest-build-containers, limit-active-containers]
+    maxBuildLogsToRetain: 100
+    defaultDaysToRetainBuildLogs: 14
+    maxDaysToRetainBuildLogs: 60
+    postgres:
+      host: pg.lab.verysmart.house
+      sslmode: require
+      database: concourse
+    kubernetes:
+      enabled: true
+      namespacePrefix: ws-secrets-
+      teams:
+        - main
+    prometheus:
+      enabled: true
+
+
+    auth:
+      cookieSecure: true
+      duration: 168h
+      mainTeam:
+        config: |
+          roles:
+            - name: owner
+              local:
+                users: ["watchedsky-admin"]
+              github:
+                users: ["jghiloni"]
+            - name: member
+              github:
+                orgs: ["watchedsky-social"]
+
+        localUser: "watchedsky-admin"
+        github:
+          org: watchedsky-social
+      github:
+        enabled: true
+
+    tsa:
+      ## Enable this flag in order to customize the `client_id` and
+      ## `client_secret` used when the TSA needs to communicate with the ATC.
+      ##
+      ## Enabling this requires setting `secrets.tsaClientId` and
+      ## `secrets.tsaClientSecret` (or filling the equivalent fields in the Secret).
+      ##
+      clientConfig:
+        enabled: false
+
+      ## Minimum level of logs to see. Possible values: debug, info, error.
+      ##
+      logLevel: info
+
+      ## IP address on which to listen for SSH.
+      ##
+      bindIp: 0.0.0.0
+
+      ## Port on which to listen for SSH.
+      ##
+      bindPort: 2222
+
+      ## IP address on which to listen for the pprof debugger endpoints (default: 127.0.0.1)
+      ##
+      debugBindIp: 127.0.0.1
+
+      ## Port on which to listen for TSA pprof server.
+      ##
+      debugBindPort: 2221
+
+      ## Path to private key to use for the SSH server.
+      ##
+      hostKey:
+
+      ## ATC API endpoints to which workers will be registered.
+      ##
+      atcUrl:
+
+      ## Interval on which to heartbeat workers to the ATC.
+      ##
+      heartbeatInterval: 30s
+
+      ## How long to wait for requests to Garden to complete. 0 means no timeout.
+      ##
+      gardenRequestTimeout:
+
+  worker:
+    connectionDrainTimeout: 15m
+    healthcheckBindIp: 0.0.0.0
+    healthcheckBindPort: 8888
+    healthcheckTimeout: 5s
+    runtime: containerd
+
+    autoscaling:
+      # maxReplicas is required to for auto scaling
+      # see the following example for scaling on CPU_Utilization and on
+      # a custom metric 'concourse_workers_containers'
+      # for this to work you need to configure the metric eg. with prometheus adapter
+      maxReplicas: 12
+      minReplicas: 4
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 1200
+          selectPolicy: Min
+          policies:
+            - type: Percent
+              value: 10
+              periodSeconds: 300
+        scaleUp:
+          stabilizationWindowSeconds: 60
+      builtInMetrics:
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              type: Utilization
+              averageUtilization: 80
+      customMetrics:
+        - type: Pods
+          pods:
+            metric:
+              name: concourse_workers_containers
+            target:
+              type: AverageValue
+              averageValue: "200"
+
+web:
+  enabled: true
+  nameOverride: atc
+  replicas: 3
+  args: ["web"]
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+
+  keySecretsPath: "/concourse-keys"
+  teamSecretsPath: "/team-authorized-keys"
+  authSecretsPath: "/concourse-auth"
+  postgresqlSecretsPath: "/concourse-postgresql"
+  service:
+    api:
+      type: ClusterIP
+
+    workerGateway:
+      type: ClusterIP
+
+    prometheus:
+      type: ClusterIP
+
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      ingress.kubernetes.io/force-ssl-redirect: "true"
+      ingress.kubernetes.io/ssl-redirect: "true"
+
+    hosts:
+      - ci.watchedsky.social
+
+    ingressClassName: contour-external
+
+    tls:
+      - secretName: ci-watchedsky-social-tls
+        hosts:
+          - ci.watchedsky.social
+worker:
+  enabled: true
+  kind: StatefulSet
+  cleanUpWorkDirOnStart: true
+  replicas: 4
+  minAvailable: 2
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+
+persistence:
+  enabled: true
+  worker:
+    size: 50Gi
+
+postgresql:
+  enabled: false
+
+rbac:
+  create: true
+
+secrets:
+  create: false
