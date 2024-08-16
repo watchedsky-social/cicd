@@ -96,4 +96,3 @@ jobs:
         params:
           image: image/image.tar
           additional_tags: tags/tag-file
-

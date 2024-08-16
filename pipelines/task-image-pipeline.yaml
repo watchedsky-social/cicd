@@ -42,8 +42,6 @@ jobs:
             trigger: true
           - get: source-image
             trigger: true
-            params:
-              format: oci # default, but yay prescriptivism
           - get: build-scheduler
             trigger: true
           - get: oci-build-task
@@ -54,7 +52,7 @@ jobs:
         file: cicd-source/tasks/build-oci-image.yaml
         params:
           DOCKERFILE: ((build-image.dockerfile))
-          IMAGE_ARGS_BASE_IMAGE: version/image.tar
+          IMAGE_ARG_BASE_IMAGE: version/image.tar
           BUILD_ARGS_FILE: ""
         input_mapping:
           source: cicd-source
