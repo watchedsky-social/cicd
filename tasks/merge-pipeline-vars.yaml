@@ -26,6 +26,4 @@ run:
         varsFiles+=("source/${f}")
       done
 
-      chmod 777 merged-values
-
       yq eval-all '. as $item ireduce ({}; . * $item )' "${varsFiles[@]}" | tee merged-values/values.yaml
