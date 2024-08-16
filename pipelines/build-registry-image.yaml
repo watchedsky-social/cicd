@@ -91,7 +91,7 @@ jobs:
             args:
               - -c
               - |
-                sed -e 's/^VERSION=/latest,/' version/version-file > tags/tag-file
+                sed -e 's/^VERSION=/latest /' version/version-file | tee tags/tag-file
       - put: built-image
         params:
           image: image/image.tar
