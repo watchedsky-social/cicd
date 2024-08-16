@@ -26,4 +26,4 @@ run:
         varsFiles+=("source/${f}")
       done
 
-      yq eval-all '. as $item ireduce ({}; . * $item )' "${varsFiles[@]}"
+      yq eval-all '. as $item ireduce ({}; . * $item )' "${varsFiles[@]}" | tee merged-values/values.yaml
