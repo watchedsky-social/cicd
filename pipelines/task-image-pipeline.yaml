@@ -35,13 +35,15 @@ resources:
 jobs:
   - name: build-task-image
     public: true
-    schema: true
+    serial: true
     plan:
       - in_parallel:
           - get: cicd-source
             trigger: true
           - get: source-image
             trigger: true
+            params:
+              format: oci
           - get: build-scheduler
             trigger: true
           - get: oci-build-task
@@ -49,6 +51,7 @@ jobs:
               format: rootfs
       - task: build-image
         image: oci-build-task
+        privileged: true
         file: cicd-source/tasks/build-oci-image.yaml
         params:
           DOCKERFILE: ((build-image.dockerfile))
@@ -57,7 +60,7 @@ jobs:
         input_mapping:
           source: cicd-source
           version: source-image
-      - put: target-image
+      - put: built-image
         params:
           image: image/image.tar
           additional_tags: source-image/tag

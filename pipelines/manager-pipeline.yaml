@@ -4,18 +4,17 @@ resources:
     type: git
     icon: git
     public: true
-    schema: true
     source:
       uri: git@github.com:watchedsky-social/cicd.git
       private_key: ((cicd-git-deploy-private-key))
       paths:
         - pipelines/**
         - tasks/**
+        - assets/**
   - name: go-backend-source
     type: git
     icon: git
     public: true
-    schema: true
     source:
       uri: git@github.com:watchedsky-social/go-backend.git
       private_key: ((go-backend-deploy-private-key))
@@ -25,7 +24,6 @@ resources:
     type: git
     icon: git
     public: true
-    schema: true
     source:
       uri: git@github.com:watchedsky-social/frontend.git
       private_key: ((frontend-deploy-private-key))
@@ -35,7 +33,6 @@ resources:
     type: registry-image
     icon: docker
     public: true
-    serial: true
     source:
       repository: registry.lab.verysmart.house/images/yq-task
       tag: "4"
@@ -48,7 +45,17 @@ jobs:
       - get: cicd-source
         trigger: true
       - set_pipeline: self
-        file: cicd-source/pipelines/pipeline-manager.yaml
+        file: cicd-source/pipelines/manager-pipeline.yaml
+  - name: update-yq-task
+    public: true
+    serial: true
+    plan:
+      - get: cicd-source
+        trigger: true
+      - set_pipeline: build-yq-task-image
+        file: cicd-source/pipelines/task-image-pipeline.yaml
+        var_files:
+          - cicd-source/assets/yq/pipeline-vars.yaml
   - name: update-go-backend
     public: true
     serial: true
@@ -67,7 +74,7 @@ jobs:
         input_mapping:
           go-backend-source: source
       - set_pipeline: build-go-backend
-        file: cicd-source/pipelines/build-registry-image.yaml
+        file: cicd-source/pipelines/registry-image-pipeline.yaml
         var_files:
           - merged-values/values.yaml
   - name: update-frontend
@@ -88,6 +95,6 @@ jobs:
         input_mapping:
           frontend-source: source
       - set_pipeline: build-frontend
-        file: cicd-source/pipelines/build-registry-image.yaml
+        file: cicd-source/pipelines/registry-image-pipeline.yaml
         var_files:
           - merged-values/values.yaml

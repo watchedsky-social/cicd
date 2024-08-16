@@ -10,4 +10,4 @@ build-image:
   rebuild-schedule:
     interval: 24h
     location: America/New_York
-  dockerfile: assets/yq/Dockerfile
+  dockerfile: source/assets/yq/Dockerfile
