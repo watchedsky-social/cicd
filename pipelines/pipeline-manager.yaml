@@ -1,0 +1,93 @@
+---
+resources:
+  - name: cicd-source
+    type: git
+    icon: git
+    public: true
+    schema: true
+    source:
+      uri: git@github.com:watchedsky-social/cicd.git
+      private_key: ((cicd-git-deploy-private-key))
+      paths:
+        - pipelines/**
+        - tasks/**
+  - name: go-backend-source
+    type: git
+    icon: git
+    public: true
+    schema: true
+    source:
+      uri: git@github.com:watchedsky-social/go-backend.git
+      private_key: ((go-backend-deploy-private-key))
+      paths:
+        - ci/**
+  - name: frontend-source
+    type: git
+    icon: git
+    public: true
+    schema: true
+    source:
+      uri: git@github.com:watchedsky-social/frontend.git
+      private_key: ((frontend-deploy-private-key))
+      paths:
+        - ci/**
+  - name: yq
+    type: registry-image
+    icon: docker
+    public: true
+    serial: true
+    source:
+      repository: registry.lab.verysmart.house/images/yq-task
+      tag: "4"
+
+jobs:
+  - name: update-self
+    public: true
+    serial: true
+    plan:
+      - get: cicd-source
+        trigger: true
+      - set_pipeline: self
+        file: cicd-source/pipelines/pipeline-manager.yaml
+  - name: update-go-backend
+    public: true
+    serial: true
+    plan:
+      - in_parallel:
+          - get: cicd-source
+            trigger: true
+          - get: go-backend-source
+            trigger: true
+          - get: yq
+            params:
+              format: rootfs
+      - task: merge-values
+        image: yq
+        file: cicd-source/tasks/merge-pipeline-vars.yaml
+        input_mapping:
+          go-backend-source: source
+      - set_pipeline: build-go-backend
+        file: cicd-source/pipelines/build-registry-image.yaml
+        var_files:
+          - merged-values/values.yaml
+  - name: update-frontend
+    public: true
+    serial: true
+    plan:
+      - in_parallel:
+          - get: cicd-source
+            trigger: true
+          - get: frontend-source
+            trigger: true
+          - get: yq
+            params:
+              format: rootfs
+      - task: merge-values
+        image: yq
+        file: cicd-source/tasks/merge-pipeline-vars.yaml
+        input_mapping:
+          frontend-source: source
+      - set_pipeline: build-frontend
+        file: cicd-source/pipelines/build-registry-image.yaml
+        var_files:
+          - merged-values/values.yaml

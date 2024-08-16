@@ -1,0 +1,67 @@
+resources:
+  - name: built-image
+    type: registry-image
+    icon: docker
+    public: true
+    source: ((build-image.target-image-config))
+  - name: source-image
+    type: registry-image
+    icon: docker
+    public: true
+    source: ((build-image.source-image-config))
+  - name: oci-build-task
+    type: registry-image
+    icon: docker
+    public: true
+    check_every: 168h
+    source:
+      repository: concourse/oci-build-task
+  - name: build-scheduler
+    type: time
+    icon: timer-outline
+    public: true
+    source: ((build-image.rebuild-schedule))
+  - name: cicd-source
+    type: git
+    icon: git
+    public: true
+    source:
+      uri: git@github.com:watchedsky-social/cicd.git
+      private_key: ((cicd-git-deploy-private-key))
+      paths:
+        - pipelines/**
+        - tasks/**
+
+jobs:
+  - name: build-task-image
+    public: true
+    schema: true
+    plan:
+      - in_parallel:
+          - get: cicd-source
+            trigger: true
+          - get: source-image
+            trigger: true
+            params:
+              format: oci # default, but yay prescriptivism
+          - get: build-scheduler
+            trigger: true
+          - get: oci-build-task
+            params:
+              format: rootfs
+      - task: build-image
+        image: oci-build-task
+        file: cicd-source/tasks/build-oci-image.yaml
+        params:
+          DOCKERFILE: ((build-image.dockerfile))
+          IMAGE_ARGS_BASE_IMAGE: version/image.tar
+          BUILD_ARGS_FILE: ""
+        input_mapping:
+          source: cicd-source
+          version: source-image
+      - put: target-image
+        params:
+          image: image/image.tar
+          additional_tags: source-image/tag
+        get_params:
+          skip_download: true

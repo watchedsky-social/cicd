@@ -1,0 +1,29 @@
+platform: linux
+
+inputs:
+  - name: cicd-source
+  - name: source
+
+outputs:
+  - name: merged-values
+
+params:
+  CICD_VARS_FILES: pipelines/build-registry-image-defaultvars.yaml
+  SOURCE_VARS_FILES: ci/pipeline-vars.yaml
+
+run:
+  path: bash
+  args:
+    - -exc
+    - |
+      declare -a varsFiles
+
+      for f in ${CICD_VARS_FILES}; do
+        varsFiles+=("cicd-source/${f}")
+      done
+
+      for f in ${SOURCE_VARS_FILES}; do
+        varsFiles+=("source/${f}")
+      done
+
+      yq eval-all '. as $item ireduce ({}; . * $item )' "${varsFiles[@]}"

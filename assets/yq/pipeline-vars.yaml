@@ -1,0 +1,13 @@
+build-image:
+  target-image-config:
+    repository: registry.lab.verysmart.house/images/yq-task
+    tag: "4"
+    username: ((harbor-user))
+    password: ((harbor-password))
+  source-image-config:
+    repository: mikefarah/yq
+    tag: "4"
+  rebuild-schedule:
+    interval: 24h
+    location: America/New_York
+  dockerfile: assets/yq/Dockerfile
