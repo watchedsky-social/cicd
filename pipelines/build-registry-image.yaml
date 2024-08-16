@@ -77,9 +77,23 @@ jobs:
         file: cicd-source/tasks/build-oci-image.yaml
         params:
           DOCKERFILE: source/((build-image.dockerfile))
+      - task: build-tags-file
+        image: alpine
+        config:
+          platform: linux
+          inputs:
+            - name: source
+            - name: version
+          outputs:
+            - name: tags
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                sed -e 's/^VERSION=/latest,/' version/version-file > tags/tag-file
       - put: built-image
         params:
-          file: image/image.tar
-          tags:
-            - latest
+          image: image/image.tar
+          additional_tags: tags/tag-file
 
