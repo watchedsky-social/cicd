@@ -2,6 +2,7 @@ platform: linux
 
 inputs:
   - name: source
+  - name: version
 
 outputs:
   - name: image
@@ -9,6 +10,7 @@ outputs:
 params:
   CONTEXT: source
   DOCKERFILE: ""
+  BUILD_ARGS_FILE: version/version-file
 
 run:
   path: build

@@ -9,4 +9,3 @@ build-image:
     interval: 24h
     location: America/New_York
   dockerfile: Dockerfile
-  extra-tags: []

@@ -16,6 +16,14 @@ resources:
     check_every: 168h
     source:
       repository: concourse/oci-build-task
+  - name: alpine
+    type: registry-image
+    icon: docker
+    public: true
+    check_every: 168h
+    source:
+      repository: alpine
+      tag: "3"
   - name: build-scheduler
     type: time
     icon: timer-outline
@@ -46,6 +54,23 @@ jobs:
           - get: oci-build-task
             params:
               format: rootfs
+          - get: alpine
+            params:
+              format: rootfs
+      - task: build-image-args
+        image: alpine
+        config:
+          platform: linux
+          inputs:
+            - name: source
+          outputs:
+            - name: version
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                echo -n "VERSION=`cat source/.git/describe_ref`" | tee version/version-file
       - task: build-image
         image: oci-build-task
         privileged: true
@@ -57,4 +82,4 @@ jobs:
           file: image/image.tar
           tags:
             - latest
-            - <<: ((build-image.extra-tags)))
+
