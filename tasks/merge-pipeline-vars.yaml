@@ -8,7 +8,7 @@ outputs:
   - name: merged-values
 
 params:
-  CICD_VARS_FILES: pipelines/build-registry-image-defaultvars.yaml
+  CICD_VARS_FILES: assets/registry-image-defaultvars.yaml
   SOURCE_VARS_FILES: ci/pipeline-vars.yaml
 
 run:

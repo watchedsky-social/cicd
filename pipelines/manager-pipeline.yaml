@@ -72,7 +72,7 @@ jobs:
         image: yq
         file: cicd-source/tasks/merge-pipeline-vars.yaml
         input_mapping:
-          go-backend-source: source
+          source: go-backend-source
       - set_pipeline: build-go-backend
         file: cicd-source/pipelines/registry-image-pipeline.yaml
         var_files:
@@ -93,7 +93,7 @@ jobs:
         image: yq
         file: cicd-source/tasks/merge-pipeline-vars.yaml
         input_mapping:
-          frontend-source: source
+          source: frontend-source
       - set_pipeline: build-frontend
         file: cicd-source/pipelines/registry-image-pipeline.yaml
         var_files:
