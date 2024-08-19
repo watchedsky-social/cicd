@@ -49,50 +49,6 @@ concourse:
           org: watchedsky-social
       github:
         enabled: true
-
-  worker:
-    connectionDrainTimeout: 15m
-    healthcheckBindIp: 0.0.0.0
-    healthcheckBindPort: 8888
-    healthcheckTimeout: 5s
-    runtime: containerd
-
-    baggageclaim:
-      driver: btrfs
-
-    autoscaling:
-      # maxReplicas is required to for auto scaling
-      # see the following example for scaling on CPU_Utilization and on
-      # a custom metric 'concourse_workers_containers'
-      # for this to work you need to configure the metric eg. with prometheus adapter
-      maxReplicas: 12
-      minReplicas: 4
-      behavior:
-        scaleDown:
-          stabilizationWindowSeconds: 1200
-          selectPolicy: Min
-          policies:
-            - type: Percent
-              value: 10
-              periodSeconds: 300
-        scaleUp:
-          stabilizationWindowSeconds: 60
-      builtInMetrics:
-        - type: Resource
-          resource:
-            name: cpu
-            target:
-              type: Utilization
-              averageUtilization: 80
-      customMetrics:
-        - type: Pods
-          pods:
-            metric:
-              name: concourse_workers_containers
-            target:
-              type: AverageValue
-              averageValue: "200"
-
 web:
   enabled: true
   nameOverride: atc
@@ -113,7 +69,7 @@ web:
       type: ClusterIP
 
     workerGateway:
-      type: ClusterIP
+      type: LoadBalancer
 
     prometheus:
       type: ClusterIP
@@ -135,21 +91,7 @@ web:
         hosts:
           - ci.watchedsky.social
 worker:
-  enabled: true
-  kind: StatefulSet
-  cleanUpWorkDirOnStart: true
-  replicas: 4
-  minAvailable: 2
-  ephemeral: false
-  resources:
-    requests:
-      cpu: "500m"
-      memory: "1Gi"
-
-persistence:
-  enabled: true
-  worker:
-    size: 50Gi
+  enabled: false
 
 postgresql:
   enabled: false
