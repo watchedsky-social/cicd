@@ -17,6 +17,6 @@ params:
   CONTEXT: source
   DOCKERFILE: ""
   BUILD_ARGS_FILE: version/version-file
-  IMAGE_ARG_BASE_IMAGE: ""
+  # IMAGE_ARG_BASE_IMAGE: ""
 run:
   path: build
