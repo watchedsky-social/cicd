@@ -9,6 +9,13 @@ resources:
     icon: docker
     public: true
     source: ((build-image.image-config))
+  - name: oci-build-task
+    type: registry-image
+    icon: docker
+    public: true
+    check_every: 168h
+    source:
+      repository: concourse/oci-build-task
   - name: alpine
     type: registry-image
     icon: docker
@@ -44,6 +51,9 @@ jobs:
           - get: cicd-source
           - get: build-scheduler
             trigger: true
+          - get: oci-build-task
+            params:
+              format: rootfs
           - get: alpine
             params:
               format: rootfs
@@ -62,6 +72,7 @@ jobs:
               - |
                 echo -n "VERSION=`cat source/.git/describe_ref`" | tee version/version-file
       - task: build-image
+        image: oci-build-task
         privileged: true
         file: cicd-source/tasks/build-oci-image.yaml
         params:
