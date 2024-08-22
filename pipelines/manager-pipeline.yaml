@@ -10,20 +10,12 @@ resources:
         - pipelines/**
         - tasks/**
         - assets/**
-  - name: go-backend-source
+  - name: core-source
     type: git
     icon: git
     source:
-      uri: git@github.com:watchedsky-social/go-backend.git
-      private_key: ((go-backend-deploy-private-key))
-      paths:
-        - ci/**
-  - name: node-backend-source
-    type: git
-    icon: git
-    source:
-      uri: git@github.com:watchedsky-social/node-backend.git
-      private_key: ((node-backend-deploy-private-key))
+      uri: git@github.com:watchedsky-social/core.git
+      private_key: ((core-deploy-private-key))
       paths:
         - ci/**
   - name: frontend-source
@@ -34,12 +26,7 @@ resources:
       private_key: ((frontend-deploy-private-key))
       paths:
         - ci/**
-  - name: yq
-    type: registry-image
-    icon: docker
-    source:
-      repository: registry.lab.verysmart.house/images/yq-task
-      tag: "4"
+
 
 jobs:
   - name: update-self
@@ -50,57 +37,18 @@ jobs:
       - set_pipeline: self
         file: cicd-source/pipelines/manager-pipeline.yaml
 
-  - name: update-yq-task
-    serial: true
-    plan:
-      - get: cicd-source
-        trigger: true
-      - set_pipeline: build-yq-task-image
-        file: cicd-source/pipelines/task-image-pipeline.yaml
-        var_files:
-          - cicd-source/assets/yq/pipeline-vars.yaml
-
-  - name: update-go-backend
+  - name: update-core
     serial: true
     plan:
       - in_parallel:
           - get: cicd-source
             trigger: true
-          - get: go-backend-source
+          - get: core-source
             trigger: true
-          - get: yq
-            params:
-              format: rootfs
-      - task: merge-values
-        image: yq
-        file: cicd-source/tasks/merge-pipeline-vars.yaml
-        input_mapping:
-          source: go-backend-source
-      - set_pipeline: build-go-backend
+      - set_pipeline: build-core
         file: cicd-source/pipelines/registry-image-pipeline.yaml
         var_files:
-          - merged-values/values.yaml
-
-  - name: update-node-backend
-    serial: true
-    plan:
-      - in_parallel:
-          - get: cicd-source
-            trigger: true
-          - get: node-backend-source
-            trigger: true
-          - get: yq
-            params:
-              format: rootfs
-      - task: merge-values
-        image: yq
-        file: cicd-source/tasks/merge-pipeline-vars.yaml
-        input_mapping:
-          source: node-backend-source
-      - set_pipeline: build-node-backend
-        file: cicd-source/pipelines/registry-image-pipeline.yaml
-        var_files:
-          - merged-values/values.yaml
+          - core-source/ci/values.yaml
 
   - name: update-frontend
     serial: true
@@ -110,15 +58,7 @@ jobs:
             trigger: true
           - get: frontend-source
             trigger: true
-          - get: yq
-            params:
-              format: rootfs
-      - task: merge-values
-        image: yq
-        file: cicd-source/tasks/merge-pipeline-vars.yaml
-        input_mapping:
-          source: frontend-source
       - set_pipeline: build-frontend
         file: cicd-source/pipelines/registry-image-pipeline.yaml
         var_files:
-          - merged-values/values.yaml
+          - frontend-source/ci/values.yaml

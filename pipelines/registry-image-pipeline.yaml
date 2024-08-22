@@ -1,98 +1,63 @@
 resources:
   - name: source
     type: git
+    public: true
     icon: git
+    source:
+      uri: git@github.com:watchedsky-social/((project.name)).git
+      private_key: ((project.key))
+  - name: daily-trigger
+    type: time
     public: true
-    source: ((build-image.source-config))
-  - name: built-image
+    icon: timer-outline
+    source:
+      interval: 24h
+      location: America/New_York
+  - name: oci-build-task-image
     type: registry-image
-    icon: docker
     public: true
-    source: ((build-image.image-config))
-  - name: oci-build-task
-    type: registry-image
     icon: docker
-    public: true
-    check_every: 168h
     source:
       repository: concourse/oci-build-task
-  - name: alpine
+  - name: destination
     type: registry-image
+    public: true
     icon: docker
-    public: true
-    check_every: 168h
     source:
-      repository: alpine
-      tag: "3"
-  - name: build-scheduler
-    type: time
-    icon: timer-outline
-    public: true
-    source: ((build-image.rebuild-schedule))
-  - name: cicd-source
-    type: git
-    icon: git
-    public: true
-    source:
-      uri: git@github.com:watchedsky-social/cicd.git
-      private_key: ((cicd-git-deploy-private-key))
-      paths:
-        - pipelines/**
-        - tasks/**
+      repository: registry.lab.verysmart.house/watchedsky/((project.name))
+      username: ((harbor-user))
+      password: ((harbor-password))
 
 jobs:
-  - name: build-image
+  - name: build
     public: true
     serial: true
     plan:
       - in_parallel:
           - get: source
             trigger: true
-          - get: cicd-source
-          - get: build-scheduler
+          - get: daily-trigger
             trigger: true
-          - get: oci-build-task
+          - get: oci-build-task-image
             params:
               format: rootfs
-          - get: alpine
-            params:
-              format: rootfs
-      - task: build-image-args
-        image: alpine
-        config:
-          platform: linux
-          inputs:
-            - name: source
-          outputs:
-            - name: version
-          run:
-            path: sh
-            args:
-              - -c
-              - |
-                echo -n "VERSION=`cat source/.git/describe_ref`" | tee version/version-file
-      - task: build-image
-        image: oci-build-task
-        privileged: true
-        file: cicd-source/tasks/build-oci-image.yaml
-        params:
-          DOCKERFILE: source/((build-image.dockerfile))
-      - task: build-tags-file
-        image: alpine
-        config:
-          platform: linux
-          inputs:
-            - name: source
-            - name: version
-          outputs:
-            - name: tags
-          run:
-            path: sh
-            args:
-              - -c
-              - |
-                sed -e 's/^VERSION=/latest /' version/version-file | tee tags/tag-file
-      - put: built-image
+      - in_parallel:
+          - load_var: version
+            file: source/.git/describe_ref
+          - task: build-image
+            image: oci-build-task-image
+            privileged: true
+            config:
+              platform: linux
+              inputs: [{ name: source }]
+              outputs: [{ name: image }]
+              caches: [{ path: cache }]
+              params:
+                CONTEXT: source
+                <<: ((project.extra-build-params))
+              run: { path: build }
+      - put: destination
         params:
           image: image/image.tar
-          additional_tags: tags/tag-file
+          version: ((.:version))
+          bump_aliases: true
