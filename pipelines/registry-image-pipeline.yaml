@@ -1,11 +1,15 @@
+anchors:
+  - &standard_build_params  { CONTEXT: source }
+  - &extra_build_params {{extra-build-params}} # Use {{ }} here for eager-substitution by the fly cli
+
 resources:
   - name: source
     type: git
     public: true
     icon: git
     source:
-      uri: git@github.com:watchedsky-social/((project.name)).git
-      private_key: ((project.key))
+      uri: git@github.com:watchedsky-social/((name)).git
+      private_key: ((key))
   - name: daily-trigger
     type: time
     public: true
@@ -24,7 +28,7 @@ resources:
     public: true
     icon: docker
     source:
-      repository: registry.lab.verysmart.house/watchedsky/((project.name))
+      repository: registry.lab.verysmart.house/watchedsky/((name))
       username: ((harbor-user))
       password: ((harbor-password))
 
@@ -53,8 +57,7 @@ jobs:
               outputs: [{ name: image }]
               caches: [{ path: cache }]
               params:
-                CONTEXT: source
-                <<: ((project.extra-build-params))
+                << : [ *standard_build_params, *extra_build_params ]
               run: { path: build }
       - put: destination
         params:
