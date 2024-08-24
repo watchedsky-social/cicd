@@ -75,10 +75,8 @@ jobs:
     serial: true
     plan:
       - in_parallel:
-          - get: cicd-source
-            trigger: true
           - get: helm-chart-source
             trigger: true
       - set_pipeline: build-helm-chart
-        file: cicd-source/pipelines/helm-chart-pipeline.yaml
+        file: helm-chart-source/ci/pipeline.yaml
 
