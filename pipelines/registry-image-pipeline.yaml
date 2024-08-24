@@ -13,7 +13,7 @@ resources:
   - name: tag-source
     type: git
     public: true
-    icon: git
+    icon: tag-check-outline
     source:
       << : *source
       tag_regex: ^v\\d+\\.\\d+\\.\\d+.*$
@@ -48,6 +48,8 @@ jobs:
     plan:
       - in_parallel:
           - get: source
+            trigger: true
+          - get: tag-source
             trigger: true
           - get: daily-trigger
             trigger: true
