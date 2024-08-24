@@ -81,5 +81,4 @@ jobs:
             trigger: true
       - set_pipeline: build-helm-chart
         file: cicd-source/pipelines/helm-chart-pipeline.yaml
-        var_files:
-          - helm-chart-source/ci/values.yaml
+
