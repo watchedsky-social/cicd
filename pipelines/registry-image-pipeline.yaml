@@ -42,8 +42,6 @@ jobs:
       - in_parallel:
           - get: source
             trigger: true
-          - get: tag-source
-            trigger: true
           - get: daily-trigger
             trigger: true
           - get: oci-build-task-image
