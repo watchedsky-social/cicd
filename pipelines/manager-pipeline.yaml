@@ -26,6 +26,14 @@ resources:
       private_key: ((frontend-deploy-private-key))
       paths:
         - ci/**
+  - name: helm-chart-source
+    type: git
+    icon: git
+    source:
+      uri: git@github.com:watchedsky-social/helm-chart.git
+      private_key: ((helm-chart-deploy-private-key))
+      paths:
+        - ci/**
 
 
 jobs:
@@ -62,3 +70,16 @@ jobs:
         file: cicd-source/pipelines/registry-image-pipeline.yaml
         var_files:
           - frontend-source/ci/values.yaml
+
+  - name: update-helm-chart
+    serial: true
+    plan:
+      - in_parallel:
+          - get: cicd-source
+            trigger: true
+          - get: helm-chart-source
+            trigger: true
+      - set_pipeline: build-helm-chart
+        file: cicd-source/pipelines/helm-chart-pipeline.yaml
+        var_files:
+          - helm-chart-source/ci/values.yaml

@@ -3,12 +3,12 @@ resources:
     type: registry-image
     icon: docker
     public: true
-    source: ((build-image.target-image-config))
+    source: ((target-image-config))
   - name: source-image
     type: registry-image
     icon: docker
     public: true
-    source: ((build-image.source-image-config))
+    source: ((source-image-config))
   - name: oci-build-task
     type: registry-image
     icon: docker
@@ -20,7 +20,7 @@ resources:
     type: time
     icon: timer-outline
     public: true
-    source: ((build-image.rebuild-schedule))
+    source: ((rebuild-schedule))
   - name: cicd-source
     type: git
     icon: git
@@ -52,17 +52,21 @@ jobs:
       - task: build-image
         image: oci-build-task
         privileged: true
-        file: cicd-source/tasks/build-oci-image.yaml
-        params:
-          DOCKERFILE: ((build-image.dockerfile))
-          IMAGE_ARG_BASE_IMAGE: version/image.tar
-          BUILD_ARGS_FILE: ""
+        config:
+          platform: linux
+          inputs: [{name: source}, {name: source-image}]
+          outputs: [{name: image}, {name: tags}]
+          caches: [{ path: cache }]
+          params:
+            DOCKERFILE: source/((dockerfile))
+            IMAGE_ARG_BASE_IMAGE: source-image/image.tar
+            BUILD_ARGS_FILE: source/((build-args-file))
+          run: { path: build }
         input_mapping:
           source: cicd-source
-          version: source-image
       - put: built-image
         params:
           image: image/image.tar
-          additional_tags: source-image/tag
+          additional_tags: tags/additonal_tags
         get_params:
           skip_download: true
