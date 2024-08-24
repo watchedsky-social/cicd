@@ -7,16 +7,9 @@ resources:
     type: git
     public: true
     icon: git
-    source: &source
+    source:
       uri: git@github.com:watchedsky-social/((name)).git
       private_key: ((key))
-  - name: tag-source
-    type: git
-    public: true
-    icon: tag-check-outline
-    source:
-      << : *source
-      tag_regex: ^v\d+\.\d+\.\d+.*$
   - name: daily-trigger
     type: time
     public: true
