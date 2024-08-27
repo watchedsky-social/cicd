@@ -47,9 +47,12 @@ jobs:
           - get: oci-build-task-image
             params:
               format: rootfs
-      - load_var: version
-        file: source/.git/describe_ref
-        reveal: true
+      - in_parallel:
+        - load_var: version
+          file: source/.git/describe_ref
+          reveal: true
+        - load_var: build-id
+          file: source/.git/short_ref
       - task: build-image
         image: oci-build-task-image
         privileged: true
