@@ -70,3 +70,5 @@ jobs:
           image: image/image.tar
           version: ((.:version))
           bump_aliases: true
+        get_params:
+          skip_download: true
