@@ -53,6 +53,7 @@ jobs:
           reveal: true
         - load_var: buildid
           file: source/.git/short_ref
+          reveal: true
       - task: build-image
         image: oci-build-task-image
         privileged: true
