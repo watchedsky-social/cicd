@@ -1,5 +1,5 @@
 target-image-config:
-  repository: registry.lab.verysmart.house/images/helm-task
+  repository: registry.lab.verysmart.house/images/helm-tasks
   tag: latest
   username: ((harbor-user))
   password: ((harbor-password))
