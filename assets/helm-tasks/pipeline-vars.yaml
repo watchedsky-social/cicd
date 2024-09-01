@@ -1,6 +1,8 @@
 target-image-config:
   repository: registry.lab.verysmart.house/images/helm-task
   tag: latest
+  username: ((harbor-user))
+  password: ((harbor-password))
 
 source-image-config:
   repository: cgr.dev/chainguard/go

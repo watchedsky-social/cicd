@@ -92,6 +92,16 @@ jobs:
         var_files:
           - feed-source/ci/values.yaml
 
+  - name: update-helm-tasks
+    serial: true
+    plan:
+      - get: cicd-source
+        trigger: true
+      - set_pipeline: build-helm-tasks-image
+        file: cicd-source/pipelines/task-image-pipeline.yaml
+        var_files:
+          - cicd-source/assets/helm-tasks/pipeline-vars.yaml
+
   - name: update-helm-chart
     serial: true
     plan:

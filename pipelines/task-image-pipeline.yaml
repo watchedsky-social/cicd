@@ -68,6 +68,5 @@ jobs:
       - put: built-image
         params:
           image: image/image.tar
-          additional_tags: tags/additonal_tags
         get_params:
           skip_download: true
