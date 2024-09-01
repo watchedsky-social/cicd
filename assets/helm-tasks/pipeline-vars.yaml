@@ -1,0 +1,9 @@
+target-image-config:
+  repository: registry.lab.verysmart.house/images/helm-task
+
+source-image-config:
+  repository: cgr.dev/chainguard/go
+  tag: latest-dev
+
+dockerfile: assets/helm-tasks/Dockerfile
+build-args-file: gitempty

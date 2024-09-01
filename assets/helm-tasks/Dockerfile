@@ -1,4 +1,5 @@
-FROM cgr.dev/chainguard/go:latest-dev AS collect
+ARG BASE_IMAGE=cgr.dev/chainguard/go:latest-dev
+FROM ${BASE_IMAGE} AS collect
 
 RUN ["go", "install", "github.com/davidrjonas/semver-cli@latest"]
 RUN ["go", "install", "github.com/mikefarah/yq/v4@latest"]
