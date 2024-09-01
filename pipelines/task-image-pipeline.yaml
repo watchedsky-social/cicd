@@ -3,12 +3,12 @@ resources:
     type: registry-image
     icon: docker
     public: true
-    source: ((target-image-config))
+    source: {{target-image-config}}
   - name: source-image
     type: registry-image
     icon: docker
     public: true
-    source: ((source-image-config))
+    source: {{source-image-config}}
   - name: oci-build-task
     type: registry-image
     icon: docker
@@ -31,6 +31,7 @@ resources:
       paths:
         - pipelines/**
         - tasks/**
+        - assets/**
 
 jobs:
   - name: build-task-image

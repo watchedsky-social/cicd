@@ -1,9 +1,13 @@
 target-image-config:
   repository: registry.lab.verysmart.house/images/helm-task
+  tag: latest
 
 source-image-config:
   repository: cgr.dev/chainguard/go
   tag: latest-dev
 
+rebuild-schedule:
+  interval: 168h
+
 dockerfile: assets/helm-tasks/Dockerfile
-build-args-file: gitempty
+build-args-file: assets/helm-tasks/gitempty
