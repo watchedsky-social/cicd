@@ -1,6 +1,34 @@
 anchors:
   - &standard_build_params  { CONTEXT: source }
   - &extra_build_params {{extra-build-params}} # Use {{ }} here for eager-substitution by the fly cli
+load_vars: &load_vars
+  in_parallel:
+    - load_var: version
+      file: source/.git/describe_ref
+      reveal: true
+    - load_var: buildid
+      file: source/.git/short_ref
+      reveal: true
+build_image: &build
+  task: build-image
+  image: oci-build-task-image
+  privileged: true
+  config:
+    platform: linux
+    inputs: [{ name: source }]
+    outputs: [{ name: image }]
+    caches: [{ path: cache }]
+    params:
+      << : [ *standard_build_params, *extra_build_params ]
+    run: { path: build }
+write_image: &write
+  put: destination
+  params:
+    image: image/image.tar
+    version: ((.:version))
+    bump_aliases: true
+  get_params:
+    skip_download: true
 
 resources:
   - name: source
@@ -55,31 +83,9 @@ jobs:
           - get: oci-build-task-image
             params:
               format: rootfs
-      - in_parallel: &get_vars
-        - load_var: version
-          file: source/.git/describe_ref
-          reveal: true
-        - load_var: buildid
-          file: source/.git/short_ref
-          reveal: true
-      - task: &build build-image
-        image: oci-build-task-image
-        privileged: true
-        config:
-          platform: linux
-          inputs: [{ name: source }]
-          outputs: [{ name: image }]
-          caches: [{ path: cache }]
-          params:
-            << : [ *standard_build_params, *extra_build_params ]
-          run: { path: build }
-      - put: &put destination
-        params:
-          image: image/image.tar
-          version: ((.:version))
-          bump_aliases: true
-        get_params:
-          skip_download: true
+      - << : *load_vars
+      - << : *build
+      - << : *write
   - name: build-tagged
     public: true
     serial: true
@@ -90,6 +96,6 @@ jobs:
           - get: oci-build-task-image
             params:
               format: rootfs
-      - << : *get_vars
+      - << : *load_vars
       - << : *build
-      - << : *put
+      - << : *write
