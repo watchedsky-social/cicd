@@ -46,6 +46,7 @@ resources:
       uri: git@github.com:watchedsky-social/((name)).git
       private_key: ((key))
       tag_regex: ^\d+\.\d+\.\d+.*$
+      fetch_tags: true
   - name: daily-trigger
     type: time
     public: true
