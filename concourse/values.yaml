@@ -13,9 +13,10 @@ concourse:
       enabled: true
     noInputContainerPlacementStrategies: [fewest-build-containers, limit-active-containers]
     checkContainerPlacementStrategies: [fewest-build-containers, limit-active-containers]
-    maxBuildLogsToRetain: 100
+    maxBuildLogsToRetain: 25
+    defaultBuildLogsToRetain: 10
     defaultDaysToRetainBuildLogs: 14
-    maxDaysToRetainBuildLogs: 60
+    maxDaysToRetainBuildLogs: 21
     postgres:
       host: pg.lab.verysmart.house
       sslmode: require
