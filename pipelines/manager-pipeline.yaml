@@ -26,14 +26,6 @@ resources:
       private_key: ((frontend-deploy-private-key))
       paths:
         - ci/**
-  - name: feed-source
-    type: git
-    icon: git
-    source:
-      uri: git@github.com:watchedsky-social/feed.git
-      private_key: ((feed-deploy-private-key))
-      paths:
-        - ci/**
   - name: helm-chart-source
     type: git
     icon: git
@@ -79,18 +71,6 @@ jobs:
         var_files:
           - frontend-source/ci/values.yaml
 
-  - name: update-feed
-    serial: true
-    plan:
-      - in_parallel:
-          - get: cicd-source
-            trigger: true
-          - get: feed-source
-            trigger: true
-      - set_pipeline: build-feed
-        file: cicd-source/pipelines/registry-image-pipeline.yaml
-        var_files:
-          - feed-source/ci/values.yaml
 
   - name: update-helm-tasks
     serial: true
